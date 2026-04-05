@@ -3,30 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Registration</title>
+  <title>Cartify — Create Account</title>
+  <meta name="description" content="Register a new Cartify customer account.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <div class="card">
-    <h1>Create Customer Account</h1>
-    <p>Register to start shopping on Cartify.</p>
+    <div style="text-align:center; margin-bottom:20px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <span style="font-size:1.5rem;">🛒</span>
+        <span style="font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#fff 0%,#8b85ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Cartify</span>
+      </div>
+    </div>
+    <h1>Create Account</h1>
+    <p style="margin-bottom:4px;">Register to start shopping on Cartify.</p>
 
     <form id="registerForm">
       <label for="fullName">Full Name</label>
-      <input id="fullName" type="text" required>
+      <input id="fullName" type="text" placeholder="John Doe" required>
 
-      <label for="email">Email</label>
-      <input id="email" type="email" required>
+      <label for="email">Email Address</label>
+      <input id="email" type="email" placeholder="you@example.com" required>
 
       <label for="password">Password</label>
-      <input id="password" type="password" required>
+      <input id="password" type="password" placeholder="Create a strong password" required>
 
-      <button type="submit">Register</button>
+      <button type="submit" id="registerSubmitBtn">Create Account</button>
       <div id="message" class="message"></div>
     </form>
 
     <div class="links">
-      Already have an account? <a href="/login.html">Login</a>
+      Already have an account? <a href="/login.html">Sign in</a>
     </div>
   </div>
 

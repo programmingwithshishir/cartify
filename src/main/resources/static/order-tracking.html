@@ -3,19 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Track Orders</title>
+  <title>Track Orders — Cartify</title>
+  <meta name="description" content="Check the live status of your Cartify orders.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <main class="checkout-shell">
     <section class="checkout-header">
       <div>
-        <h1>Track Your Orders</h1>
+        <h1>📦 Track Your Orders</h1>
         <p>View live order updates from ordered to delivered.</p>
       </div>
       <div class="checkout-nav">
-        <a href="/customer-dashboard.html">Store</a>
-        <a href="/checkout.html">Checkout</a>
+        <a href="/customer-dashboard.html">← Store</a>
+        <a href="/checkout.html">🏠 Checkout</a>
       </div>
     </section>
 
@@ -43,7 +47,7 @@
     function renderOrders(orders) {
       ordersWrap.innerHTML = "";
       if (!orders.length) {
-        ordersWrap.innerHTML = "<p class='muted'>No orders yet.</p>";
+        ordersWrap.innerHTML = "<p class='muted' style='padding:20px;text-align:center;'>No orders yet.</p>";
         return;
       }
 
@@ -56,12 +60,12 @@
             <strong>Order #${order.id}</strong>
             <span>${price(order.totalAmount)}</span>
           </div>
-          <p class="muted">Placed: ${order.createdAt || "-"}</p>
+          <p class="muted" style="font-size:0.8rem;margin-top:2px;">Placed: ${order.createdAt || "–"}</p>
           <div class="status-row">
             ${steps.map(s => `<span class="status-chip ${s.done ? "done" : ""}">${s.name.replaceAll("_", " ")}</span>`).join("")}
           </div>
           <div class="order-items">
-            ${order.items.map(i => `<div>${i.itemName} x ${i.quantity}</div>`).join("")}
+            ${order.items.map(i => `<div>• ${i.itemName} × ${i.quantity}</div>`).join("")}
           </div>
         `;
         ordersWrap.appendChild(card);

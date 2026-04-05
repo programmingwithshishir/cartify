@@ -3,64 +3,203 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkout</title>
+  <title>Checkout — Cartify</title>
+  <meta name="description" content="Complete your Cartify order — enter shipping address and place order.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
+  <style>
+    /* ── Divider between two checkout panels ── */
+    .checkout-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 18px 0 6px;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .checkout-divider::before,
+    .checkout-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Saved address card list ── */
+    .saved-addr-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .saved-addr-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--bg-elevated);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+    }
+
+    .saved-addr-card:hover {
+      border-color: rgba(108,99,255,0.4);
+      background: rgba(108,99,255,0.05);
+    }
+
+    .saved-addr-card.selected {
+      border-color: var(--brand);
+      background: rgba(108,99,255,0.10);
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+    }
+
+    .saved-addr-card input[type="radio"] {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      margin-top: 3px;
+      accent-color: var(--brand);
+      cursor: pointer;
+    }
+
+    .addr-card-body {
+      flex: 1;
+    }
+
+    .addr-card-body strong {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .addr-card-body span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .no-saved-msg {
+      text-align: center;
+      padding: 22px 16px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      background: var(--bg-elevated);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      margin-top: 14px;
+    }
+
+    /* keep the hidden select for JS compat */
+    #savedAddresses { display: none; }
+
+    /* new address panel title badge */
+    .panel-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--brand-light);
+      background: rgba(108,99,255,0.12);
+      border: 1px solid rgba(108,99,255,0.25);
+      padding: 3px 9px;
+      border-radius: 99px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+  </style>
 </head>
 <body>
   <main class="checkout-shell">
     <section class="checkout-header">
       <div>
-        <h1>Checkout</h1>
-        <p>Save addresses, place your order, and track live status updates.</p>
+        <h1>🏠 Checkout</h1>
+        <p>Select a saved address or add a new one, then place your order.</p>
       </div>
       <div class="checkout-nav">
-        <a href="/customer-dashboard.html">Back to Store</a>
-        <a href="/order-tracking.html">Track Orders</a>
+        <a href="/customer-dashboard.html">← Back to Store</a>
+        <a href="/order-tracking.html">📦 Track Orders</a>
       </div>
     </section>
 
     <section class="checkout-grid">
+
+      <!-- ── LEFT PANEL: Saved Addresses + Place Order ── -->
       <article class="checkout-panel">
-        <h2>Shipping Address</h2>
-        <label for="savedAddresses">Use saved address</label>
-        <select id="savedAddresses">
+        <h2>📌 Saved Addresses</h2>
+
+        <!-- Hidden native select kept for JS payload logic -->
+        <select id="savedAddresses" aria-hidden="true">
           <option value="">-- Select saved address --</option>
         </select>
-        <p class="muted">Or add a new one below.</p>
+
+        <!-- Visual card list -->
+        <div id="savedAddrList" class="saved-addr-list">
+          <p class="no-saved-msg">Loading addresses…</p>
+        </div>
+
+        <div class="checkout-divider">Order Summary</div>
+
+        <div id="checkoutMessage" class="message"></div>
+
+        <button id="placeOrderBtn" type="button" style="margin-top:10px;">
+          🛍️ Place Order
+        </button>
+      </article>
+
+      <!-- ── RIGHT PANEL: New Address Form ── -->
+      <article class="checkout-panel">
+        <h2>
+          ➕ Add New Address
+          <span class="panel-badge">Optional</span>
+        </h2>
+        <p class="muted" style="font-size:0.82rem;margin-bottom:4px;">
+          Fill this in to use a different address. Leave blank if you've selected a saved one.
+        </p>
 
         <form id="addressForm">
           <label for="fullName">Full Name</label>
-          <input id="fullName" type="text" required>
+          <input id="fullName" type="text" placeholder="John Doe">
 
-          <label for="phone">Phone</label>
-          <input id="phone" type="text" required>
+          <label for="phone">Phone Number</label>
+          <input id="phone" type="text" placeholder="+91 98765 43210">
 
           <label for="line1">Address Line 1</label>
-          <input id="line1" type="text" required>
+          <input id="line1" type="text" placeholder="House / Flat No., Street">
 
-          <label for="line2">Address Line 2</label>
-          <input id="line2" type="text">
+          <label for="line2">
+            Address Line 2
+            <span style="font-weight:400;text-transform:none;font-size:0.78rem;color:#64748b;">(optional)</span>
+          </label>
+          <input id="line2" type="text" placeholder="Landmark, Area">
 
           <label for="city">City</label>
-          <input id="city" type="text" required>
+          <input id="city" type="text" placeholder="Mumbai">
 
           <label for="state">State</label>
-          <input id="state" type="text" required>
+          <input id="state" type="text" placeholder="Maharashtra">
 
           <label for="postalCode">Postal Code</label>
-          <input id="postalCode" type="text" required>
+          <input id="postalCode" type="text" placeholder="400001">
 
           <label for="country">Country</label>
-          <input id="country" type="text" value="India" required>
+          <input id="country" type="text" value="India">
 
           <label class="inline-check">
             <input id="saveForLater" type="checkbox" checked>
             Save this address for later use
           </label>
         </form>
-
-        <button id="placeOrderBtn" type="button">Place Order</button>
-        <div id="checkoutMessage" class="message"></div>
       </article>
 
     </section>
@@ -68,8 +207,9 @@
 
   <script>
     const savedAddresses = document.getElementById("savedAddresses");
+    const savedAddrList  = document.getElementById("savedAddrList");
     const checkoutMessage = document.getElementById("checkoutMessage");
-    const placeOrderBtn = document.getElementById("placeOrderBtn");
+    const placeOrderBtn   = document.getElementById("placeOrderBtn");
     let addresses = [];
 
     function showMessage(text, ok) {
@@ -80,18 +220,25 @@
 
     function currentAddressPayload() {
       return {
-        fullName: document.getElementById("fullName").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
-        line1: document.getElementById("line1").value.trim(),
-        line2: document.getElementById("line2").value.trim(),
-        city: document.getElementById("city").value.trim(),
-        state: document.getElementById("state").value.trim(),
+        fullName:   document.getElementById("fullName").value.trim(),
+        phone:      document.getElementById("phone").value.trim(),
+        line1:      document.getElementById("line1").value.trim(),
+        line2:      document.getElementById("line2").value.trim(),
+        city:       document.getElementById("city").value.trim(),
+        state:      document.getElementById("state").value.trim(),
         postalCode: document.getElementById("postalCode").value.trim(),
-        country: document.getElementById("country").value.trim()
+        country:    document.getElementById("country").value.trim()
       };
     }
 
+    /* Keep the native <select> in sync so the Place Order logic
+       (which reads savedAddresses.value) works without any change */
+    function syncSelect(selectedId) {
+      savedAddresses.value = selectedId;
+    }
+
     function renderAddressOptions() {
+      /* Update hidden native select */
       savedAddresses.innerHTML = `<option value="">-- Select saved address --</option>`;
       addresses.forEach((a) => {
         const option = document.createElement("option");
@@ -99,6 +246,40 @@
         option.textContent = `${a.fullName} - ${a.line1}, ${a.city}`;
         savedAddresses.appendChild(option);
       });
+
+      /* Render visual card list */
+      savedAddrList.innerHTML = "";
+
+      if (!addresses.length) {
+        savedAddrList.innerHTML = `
+          <div class="no-saved-msg">
+            📭 No saved addresses yet.<br>
+            <span style="color:var(--text-muted);">Use the form on the right to add one.</span>
+          </div>`;
+        return;
+      }
+
+      addresses.forEach((a, idx) => {
+        const card = document.createElement("label");
+        card.className = "saved-addr-card" + (idx === 0 ? " selected" : "");
+        card.innerHTML = `
+          <input type="radio" name="addrChoice" value="${a.id}" ${idx === 0 ? "checked" : ""}>
+          <div class="addr-card-body">
+            <strong>${a.fullName}</strong>
+            <span>${a.line1}${a.line2 ? ", " + a.line2 : ""}, ${a.city}, ${a.state} – ${a.postalCode}<br>${a.country} · 📞 ${a.phone || "–"}</span>
+          </div>`;
+
+        card.addEventListener("change", () => {
+          document.querySelectorAll(".saved-addr-card").forEach(c => c.classList.remove("selected"));
+          card.classList.add("selected");
+          syncSelect(a.id);
+        });
+
+        savedAddrList.appendChild(card);
+      });
+
+      /* Default: sync select to first address */
+      syncSelect(addresses[0].id);
     }
 
     async function loadAddresses() {

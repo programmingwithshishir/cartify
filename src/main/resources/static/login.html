@@ -3,28 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Login</title>
+  <title>Cartify — Customer Login</title>
+  <meta name="description" content="Sign in to your Cartify shopping account.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <div class="card">
-    <h1>Customer Login</h1>
-    <p>Sign in to your shopping account.</p>
+    <div style="text-align:center; margin-bottom:20px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <span style="font-size:1.5rem;">🛒</span>
+        <span style="font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#fff 0%,#8b85ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Cartify</span>
+      </div>
+    </div>
+    <h1>Welcome back</h1>
+    <p style="margin-bottom:4px;">Sign in to your shopping account.</p>
 
     <form id="loginForm">
-      <label for="email">Email</label>
-      <input id="email" type="email" required>
+      <label for="email">Email Address</label>
+      <input id="email" type="email" placeholder="you@example.com" required>
 
       <label for="password">Password</label>
-      <input id="password" type="password" required>
+      <input id="password" type="password" placeholder="Enter your password" required>
 
-      <button type="submit">Login</button>
+      <button type="submit" id="loginSubmitBtn">Sign In</button>
       <div id="message" class="message"></div>
     </form>
 
     <div class="links">
-      New customer? <a href="/register.html">Register</a><br>
-      Admin? <a href="/admin-login.html">Admin Login</a>
+      New customer? <a href="/register.html">Create account</a><br>
+      Admin? <a href="/admin-login.html">Admin Login →</a>
     </div>
   </div>
 

@@ -3,22 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Login</title>
+  <title>Cartify — Admin Login</title>
+  <meta name="description" content="Admin portal login for Cartify.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <div class="card">
+    <div style="text-align:center; margin-bottom:20px;">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#6c63ff,#5046e4);margin-bottom:8px;box-shadow:0 8px 24px rgba(108,99,255,0.4);">
+        <span style="font-size:1.4rem;">⚙️</span>
+      </div>
+      <div style="font-size:0.78rem;font-weight:600;color:#64748b;letter-spacing:0.1em;text-transform:uppercase;">Admin Portal</div>
+    </div>
     <h1>Admin Login</h1>
-    <p>Only admin can sign in from this page.</p>
+    <p style="margin-bottom:4px;">Restricted access — administrators only.</p>
 
     <form id="adminForm">
       <label for="username">Username</label>
-      <input id="username" type="text" required>
+      <input id="username" type="text" placeholder="Enter admin username" required>
 
       <label for="password">Password</label>
-      <input id="password" type="password" required>
+      <input id="password" type="password" placeholder="Enter admin password" required>
 
-      <button type="submit">Login as Admin</button>
+      <button type="submit" id="adminSubmitBtn" style="background:linear-gradient(135deg,#f97316,#ea580c);">Login as Admin</button>
       <div id="message" class="message"></div>
     </form>
 

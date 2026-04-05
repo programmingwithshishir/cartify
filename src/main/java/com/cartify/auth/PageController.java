@@ -10,7 +10,7 @@ public class PageController {
 
     @GetMapping("/")
     public String home() {
-        return "redirect:/login.html";
+        return "redirect:/index.html";
     }
 
     @GetMapping("/register")

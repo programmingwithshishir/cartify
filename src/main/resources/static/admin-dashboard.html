@@ -3,19 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Item Manager</title>
+  <title>Admin Item Manager — Cartify</title>
+  <meta name="description" content="Manage inventory and products in Cartify admin panel.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <main class="admin-shell">
     <section class="admin-header">
       <div>
-        <h1>Admin Item Manager</h1>
+        <h1>⚙️ Admin Item Manager</h1>
         <p>Left: add or edit items. Right: search and manage all listed products.</p>
       </div>
       <div class="admin-nav">
-        <a href="/admin-orders.html">Incoming Orders</a>
-        <button id="logoutBtn" class="secondary" type="button">Logout</button>
+        <a href="/admin-orders.html">📋 Incoming Orders</a>
+        <button id="logoutBtn" class="secondary" type="button">Logout →</button>
       </div>
     </section>
 
@@ -27,13 +31,13 @@
           <input id="existingImageUrls" type="hidden">
 
           <label for="name">Item Name</label>
-          <input id="name" name="name" type="text" required>
+          <input id="name" name="name" type="text" placeholder="e.g. Wireless Headphones" required>
 
           <label for="description">Description</label>
-          <textarea id="description" name="description" rows="4" required></textarea>
+          <textarea id="description" name="description" rows="4" placeholder="Describe the product…" required></textarea>
 
-          <label for="price">Price</label>
-          <input id="price" name="price" type="number" min="0" step="0.01" required>
+          <label for="price">Price (₹)</label>
+          <input id="price" name="price" type="number" min="0" step="0.01" placeholder="0.00" required>
 
           <label for="images">Upload Images</label>
           <input id="images" name="images" type="file" accept="image/*" multiple>
@@ -41,12 +45,12 @@
 
           <div id="currentImages" class="image-preview-grid"></div>
 
-          <label for="tags">Category Tags (comma separated)</label>
+          <label for="tags">Category Tags <span style="font-weight:400;text-transform:none;font-size:0.78rem;color:#64748b;">(comma separated)</span></label>
           <input id="tags" name="categoryTags" type="text" placeholder="electronics, headphones, wireless" required>
 
           <div class="admin-actions">
             <button id="saveBtn" type="submit">Add Item</button>
-            <button id="cancelEditBtn" type="button" class="secondary" style="display:none;">Cancel Edit</button>
+            <button id="cancelEditBtn" type="button" class="secondary" style="display:none;">✕ Cancel Edit</button>
           </div>
           <div id="message" class="message"></div>
         </form>
@@ -54,8 +58,8 @@
 
       <article class="admin-column">
         <h2>Manage Items</h2>
-        <label for="search">Search by name, description, or category</label>
-        <input id="search" type="text" placeholder="Search items...">
+        <label for="search" style="margin-top:0;">🔍 Search</label>
+        <input id="search" type="text" placeholder="Search by name, description, or category…">
 
         <div class="items-wrap">
           <table>
@@ -130,7 +134,7 @@
     function renderRows(data) {
       itemsBody.innerHTML = "";
       if (!data.length) {
-        itemsBody.innerHTML = "<tr><td colspan='5'>No items found.</td></tr>";
+        itemsBody.innerHTML = "<tr><td colspan='5' style='text-align:center;padding:24px;color:#64748b;'>No items found.</td></tr>";
         return;
       }
 
@@ -138,13 +142,13 @@
         const image = item.imageUrls && item.imageUrls.length ? item.imageUrls[0] : "";
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${image ? `<img src="${image}" alt="Item" class="table-thumb">` : "-"}</td>
-          <td>${item.name}</td>
-          <td>&#8377;${Number(item.price).toFixed(2)}</td>
-          <td>${toCsv(item.categoryTags)}</td>
-          <td>
-            <button class="small" data-edit="${item.id}">Edit</button>
-            <button class="small danger" data-delete="${item.id}">Delete</button>
+          <td>${image ? `<img src="${image}" alt="Item" class="table-thumb">` : "<span style='color:#64748b;'>–</span>"}</td>
+          <td><strong style="font-size:0.88rem;">${item.name}</strong></td>
+          <td><span style="color:#fb923c;font-weight:700;">&#8377;${Number(item.price).toFixed(2)}</span></td>
+          <td><span style="color:#8b85ff;font-size:0.78rem;">${toCsv(item.categoryTags)}</span></td>
+          <td style="white-space:nowrap;">
+            <button class="small" data-edit="${item.id}">✏️ Edit</button>
+            <button class="small danger" data-delete="${item.id}">🗑 Delete</button>
           </td>
         `;
         itemsBody.appendChild(tr);

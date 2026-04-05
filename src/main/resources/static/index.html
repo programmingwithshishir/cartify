@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cartify — Smart Shopping, Delivered</title>
+  <meta name="description" content="Cartify is a modern online shopping platform. Browse products, manage your cart, and track orders in real time.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:       #6c63ff;
+      --brand-light: #8b85ff;
+      --brand-dark:  #5046e4;
+      --accent:      #f97316;
+      --accent-light:#fb923c;
+      --success:     #10b981;
+      --bg:          #0d0f1a;
+      --surface:     rgba(255,255,255,0.05);
+      --glass-border:rgba(255,255,255,0.10);
+      --text:        #f1f5f9;
+      --muted:       #64748b;
+      --sub:         #94a3b8;
+      --radius-lg:   20px;
+      --transition:  0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Animated background blobs ── */
+    .bg-blobs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.18;
+      animation: blobDrift 14s ease-in-out infinite alternate;
+    }
+
+    .blob-1 {
+      width: 700px; height: 700px;
+      background: var(--brand);
+      top: -200px; left: -200px;
+      animation-duration: 16s;
+    }
+
+    .blob-2 {
+      width: 500px; height: 500px;
+      background: var(--accent);
+      bottom: -150px; right: -100px;
+      animation-duration: 20s;
+      animation-direction: alternate-reverse;
+    }
+
+    .blob-3 {
+      width: 350px; height: 350px;
+      background: var(--success);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation-duration: 18s;
+    }
+
+    @keyframes blobDrift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(40px, 30px) scale(1.08); }
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 48px;
+      background: rgba(13,15,26,0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-logo .logo-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 16px rgba(108,99,255,0.4);
+      flex-shrink: 0;
+    }
+
+    .nav-logo span {
+      background: linear-gradient(135deg, #fff 0%, var(--brand-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.88rem;
+      padding: 9px 20px;
+      border-radius: 10px;
+      transition: all var(--transition);
+    }
+
+    .nav-links .btn-ghost {
+      color: var(--sub);
+      border: 1px solid var(--glass-border);
+      background: transparent;
+    }
+
+    .nav-links .btn-ghost:hover {
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    .nav-links .btn-primary {
+      color: #fff;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      box-shadow: 0 4px 16px rgba(108,99,255,0.35);
+    }
+
+    .nav-links .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(108,99,255,0.5);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 16px;
+      border-radius: 999px;
+      background: rgba(108,99,255,0.12);
+      border: 1px solid rgba(108,99,255,0.3);
+      color: var(--brand-light);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--brand-light);
+      box-shadow: 0 0 8px var(--brand-light);
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 22px;
+      animation: fadeUp 0.7s 0.1s ease both;
+    }
+
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, #fff 0%, var(--brand-light) 40%, var(--accent-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      max-width: 560px;
+      font-size: 1.1rem;
+      color: var(--sub);
+      line-height: 1.7;
+      margin-bottom: 42px;
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeUp 0.7s 0.3s ease both;
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 15px 32px;
+      border-radius: 12px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .cta-primary {
+      background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+      color: #fff;
+      box-shadow: 0 8px 32px rgba(108,99,255,0.45);
+    }
+
+    .cta-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 40px rgba(108,99,255,0.6);
+      color: #fff;
+    }
+
+    .cta-secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid var(--glass-border);
+    }
+
+    .cta-secondary:hover {
+      background: rgba(255,255,255,0.10);
+      transform: translateY(-1px);
+      color: #fff;
+    }
+
+    /* ── Features ── */
+    .features {
+      position: relative;
+      z-index: 1;
+      padding: 80px 48px 100px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      text-align: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--brand-light);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 56px;
+      background: linear-gradient(135deg, #fff 0%, var(--sub) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 28px 26px;
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+      border-color: rgba(108,99,255,0.3);
+    }
+
+    .feature-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 18px;
+    }
+
+    .icon-purple { background: rgba(108,99,255,0.15); }
+    .icon-orange { background: rgba(249,115,22,0.15); }
+    .icon-green  { background: rgba(16,185,129,0.15); }
+    .icon-blue   { background: rgba(59,130,246,0.15); }
+
+    .feature-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      font-size: 0.88rem;
+      color: var(--sub);
+      line-height: 1.65;
+    }
+
+    /* ── CTA Section ── */
+    .cta-section {
+      position: relative;
+      z-index: 1;
+      margin: 0 48px 100px;
+      padding: 60px 48px;
+      background: linear-gradient(135deg, rgba(108,99,255,0.15) 0%, rgba(249,115,22,0.10) 100%);
+      border: 1px solid rgba(108,99,255,0.25);
+      border-radius: 28px;
+      text-align: center;
+      backdrop-filter: blur(16px);
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      top: -80px; left: 50%; transform: translateX(-50%);
+      width: 400px; height: 200px;
+      background: var(--brand);
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.12;
+      pointer-events: none;
+    }
+
+    .cta-section h2 {
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .cta-section p {
+      color: var(--sub);
+      font-size: 1rem;
+      margin-bottom: 36px;
+      position: relative;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    /* ── Footer ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 30px 24px;
+      border-top: 1px solid var(--glass-border);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    footer a {
+      color: var(--sub);
+      text-decoration: none;
+    }
+
+    footer a:hover { color: var(--text); }
+
+    /* ── Stats strip ── */
+    .stats-strip {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin: 0 auto 80px;
+      max-width: 700px;
+      background: var(--surface);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+    }
+
+    .stat-item {
+      flex: 1;
+      padding: 26px 20px;
+      text-align: center;
+      border-right: 1px solid var(--glass-border);
+    }
+
+    .stat-item:last-child { border-right: none; }
+
+    .stat-item .stat-num {
+      font-size: 1.7rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff, var(--brand-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: block;
+    }
+
+    .stat-item .stat-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 3px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .features { padding: 60px 20px 80px; }
+      .cta-section { margin: 0 16px 80px; padding: 44px 24px; }
+      .stats-strip { margin: 0 16px 60px; }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 2.4rem; }
+      .nav-links .btn-ghost { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Animated background -->
+  <div class="bg-blobs" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="/index.html" class="nav-logo">
+      <div class="logo-icon">🛒</div>
+      <span>Cartify</span>
+    </a>
+    <div class="nav-links">
+      <a href="/login.html" class="btn-ghost">Sign In</a>
+      <a href="/register.html" class="btn-primary">Get Started →</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">✨ Smart Shopping Platform</div>
+
+    <h1>
+      Shop smarter,<br>
+      <span class="gradient-text">cart better.</span>
+    </h1>
+
+    <p class="hero-sub">
+      Cartify brings you a seamless online shopping experience — browse products, build your cart, checkout with ease, and track every order in real time.
+    </p>
+
+    <div class="hero-cta">
+      <a href="/register.html" class="cta-btn cta-primary">
+        🛍️ Start Shopping
+      </a>
+      <a href="/login.html" class="cta-btn cta-secondary">
+        Sign In to Your Account
+      </a>
+    </div>
+  </section>
+
+  <!-- Stats Strip -->
+  <div class="stats-strip">
+    <div class="stat-item">
+      <span class="stat-num">100+</span>
+      <span class="stat-label">Products</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">Real‑time</span>
+      <span class="stat-label">Order Tracking</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">Secure</span>
+      <span class="stat-label">Checkout</span>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section class="features">
+    <p class="section-label">Why Cartify?</p>
+    <h2 class="section-title">Everything you need to shop online</h2>
+
+    <div class="features-grid">
+      <div class="feature-card" style="animation-delay:0s;">
+        <div class="feature-icon icon-purple">🛒</div>
+        <h3>Smart Cart</h3>
+        <p>Add items, adjust quantities on the fly, and see your total update instantly — all without leaving the page.</p>
+      </div>
+
+      <div class="feature-card" style="animation-delay:0.1s;">
+        <div class="feature-icon icon-orange">📦</div>
+        <h3>Live Order Tracking</h3>
+        <p>Follow your order from <em>Ordered</em> → <em>Shipped</em> → <em>Out for Delivery</em> → <em>Delivered</em> in real time.</p>
+      </div>
+
+      <div class="feature-card" style="animation-delay:0.2s;">
+        <div class="feature-icon icon-green">📍</div>
+        <h3>Saved Addresses</h3>
+        <p>Save multiple delivery addresses once and select them in seconds at checkout — no re-typing needed.</p>
+      </div>
+
+      <div class="feature-card" style="animation-delay:0.3s;">
+        <div class="feature-icon icon-blue">🔍</div>
+        <h3>Instant Search</h3>
+        <p>Filter the entire product catalogue by name, description, or category tags as you type — lightning fast.</p>
+      </div>
+
+      <div class="feature-card" style="animation-delay:0.4s;">
+        <div class="feature-icon icon-purple">⚙️</div>
+        <h3>Admin Dashboard</h3>
+        <p>Admins can add, edit, and remove products with image uploads, and manage order fulfilment status.</p>
+      </div>
+
+      <div class="feature-card" style="animation-delay:0.5s;">
+        <div class="feature-icon icon-orange">🔐</div>
+        <h3>Secure Auth</h3>
+        <p>Separate customer and admin login flows with session-based security to keep your account safe.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <h2>Ready to start shopping?</h2>
+    <p>Create your free account in seconds and explore the store.</p>
+    <div class="cta-buttons">
+      <a href="/register.html" class="cta-btn cta-primary">🚀 Create Free Account</a>
+      <a href="/login.html"    class="cta-btn cta-secondary">Already have an account?</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 <strong style="color:var(--sub);">Cartify</strong> — Built with ☕ for EJAVA Task · <a href="/admin-login.html">Admin Portal</a></p>
+  </footer>
+
+</body>
+</html>

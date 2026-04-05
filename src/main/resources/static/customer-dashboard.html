@@ -4,22 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cartify Store</title>
+  <meta name="description" content="Browse, search and shop on Cartify.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <main class="shop-shell">
     <section class="shop-header">
       <div>
-        <h1>Cartify Store</h1>
+        <h1>🛒 Cartify Store</h1>
         <p>Browse items, search quickly, and add what you need to cart.</p>
       </div>
-      <button id="logoutBtn" class="secondary" type="button">Logout</button>
+      <button id="logoutBtn" class="secondary" type="button">Logout →</button>
     </section>
 
     <section class="shop-grid">
       <article class="shop-products">
-        <label for="search">Search products</label>
-        <input id="search" type="text" placeholder="Search by name, description, or tags...">
+        <label for="search" style="font-size:0.8rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#94a3b8;margin-bottom:10px;display:block;">🔍 Search Products</label>
+        <input id="search" type="text" placeholder="Search by name, description, or tags…">
         <div id="productGrid" class="product-grid"></div>
       </article>
 
@@ -31,7 +35,7 @@
           <strong id="cartTotal">&#8377;0.00</strong>
         </div>
         <a href="/checkout.html" class="checkout-link">Proceed to Checkout</a>
-        <a href="/order-tracking.html" class="checkout-link secondary-link">Track Orders</a>
+        <a href="/order-tracking.html" class="checkout-link secondary-link">📦 Track Orders</a>
       </aside>
     </section>
   </main>
@@ -60,7 +64,7 @@
     function renderProducts(items) {
       productGrid.innerHTML = "";
       if (!items.length) {
-        productGrid.innerHTML = "<p class='muted'>No items available.</p>";
+        productGrid.innerHTML = "<p class='muted' style='padding:20px;text-align:center;'>No items available.</p>";
         return;
       }
 
@@ -89,7 +93,7 @@
     function renderCart() {
       cartItems.innerHTML = "";
       if (!cart.length) {
-        cartItems.innerHTML = "<p class='muted'>Cart is empty.</p>";
+        cartItems.innerHTML = "<p class='muted' style='padding:16px 0;text-align:center;'>Your cart is empty.</p>";
         cartTotal.textContent = price(0);
         return;
       }
@@ -107,7 +111,7 @@
               <button class="small danger" data-remove="${entry.cartItemId}">Remove</button>
             </div>
           </div>
-          <strong>${price(entry.lineTotal)}</strong>
+          <strong style="color:var(--accent-light);font-size:0.95rem;">${price(entry.lineTotal)}</strong>
         `;
         cartItems.appendChild(row);
       });
