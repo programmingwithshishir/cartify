@@ -26,11 +26,11 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/api/admin/items")
 public class AdminItemController {
 
-    private final ItemRepository itemRepository;
+    private final ItemDao itemDao;
     private final ItemImageStorageService imageStorageService;
 
-    public AdminItemController(ItemRepository itemRepository, ItemImageStorageService imageStorageService) {
-        this.itemRepository = itemRepository;
+    public AdminItemController(ItemDao itemDao, ItemImageStorageService imageStorageService) {
+        this.itemDao = itemDao;
         this.imageStorageService = imageStorageService;
     }
 
@@ -41,9 +41,8 @@ public class AdminItemController {
         }
 
         List<Item> items = (q == null || q.isBlank())
-                ? itemRepository.findAll()
-                : itemRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrCategoryTagsContainingIgnoreCase(
-                        q.trim(), q.trim(), q.trim());
+                ? itemDao.findAll()
+                : itemDao.search(q.trim());
 
         List<ItemResponse> response = items.stream().map(this::toResponse).toList();
         return ResponseEntity.ok(response);
@@ -84,7 +83,7 @@ public class AdminItemController {
         item.setPrice(price);
         item.setImageUrls(joinCommaSeparated(imageUrls));
         item.setCategoryTags(normalizeCommaSeparated(categoryTags));
-        itemRepository.save(item);
+        itemDao.save(item);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(item));
     }
@@ -108,7 +107,7 @@ public class AdminItemController {
             return ResponseEntity.badRequest().body(Map.of("message", basicValidationError));
         }
 
-        Item item = itemRepository.findById(id).orElse(null);
+        Item item = itemDao.findById(id).orElse(null);
         if (item == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Item not found."));
         }
@@ -129,12 +128,16 @@ public class AdminItemController {
             return ResponseEntity.badRequest().body(Map.of("message", "Please keep or upload at least one image."));
         }
 
+        if (!uploadedUrls.isEmpty()) {
+            imageStorageService.deleteLocalImages(splitCommaSeparated(item.getImageUrls()));
+        }
+
         item.setName(name.trim());
         item.setDescription(description.trim());
         item.setPrice(price);
         item.setImageUrls(joinCommaSeparated(finalImages));
         item.setCategoryTags(normalizeCommaSeparated(categoryTags));
-        itemRepository.save(item);
+        itemDao.save(item);
         return ResponseEntity.ok(toResponse(item));
     }
 
@@ -144,11 +147,13 @@ public class AdminItemController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Admin login required."));
         }
 
-        if (!itemRepository.existsById(id)) {
+        Item item = itemDao.findById(id).orElse(null);
+        if (item == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Item not found."));
         }
 
-        itemRepository.deleteById(id);
+        imageStorageService.deleteLocalImages(splitCommaSeparated(item.getImageUrls()));
+        itemDao.deleteById(id);
         return ResponseEntity.ok(Map.of("message", "Item deleted."));
     }
 

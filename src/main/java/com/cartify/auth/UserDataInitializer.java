@@ -8,17 +8,50 @@ import org.springframework.stereotype.Component;
 public class UserDataInitializer implements CommandLineRunner {
 
     private final JdbcTemplate jdbcTemplate;
-    private final UserRepository userRepository;
+    private final UserDao userDao;
 
-    public UserDataInitializer(JdbcTemplate jdbcTemplate, UserRepository userRepository) {
+    public UserDataInitializer(JdbcTemplate jdbcTemplate, UserDao userDao) {
         this.jdbcTemplate = jdbcTemplate;
-        this.userRepository = userRepository;
+        this.userDao = userDao;
     }
 
     @Override
     public void run(String... args) {
+        createTablesIfMissing();
         migrateCustomersTableToUsers();
         ensureAdminUserExists();
+    }
+
+    private void createTablesIfMissing() {
+        jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    full_name TEXT NOT NULL,
+                    email TEXT NOT NULL UNIQUE,
+                    password TEXT NOT NULL,
+                    role TEXT NOT NULL
+                )
+                """);
+
+        jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS items (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    description TEXT NOT NULL,
+                    price NUMERIC NOT NULL,
+                    image_urls TEXT NOT NULL,
+                    category_tags TEXT NOT NULL
+                )
+                """);
+
+        jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS cart_items (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    customer_id INTEGER NOT NULL,
+                    item_id INTEGER NOT NULL,
+                    quantity INTEGER NOT NULL
+                )
+                """);
     }
 
     private void migrateCustomersTableToUsers() {
@@ -46,12 +79,12 @@ public class UserDataInitializer implements CommandLineRunner {
     }
 
     private void ensureAdminUserExists() {
-        User admin = userRepository.findByEmail("admin").orElseGet(User::new);
+        User admin = userDao.findByEmail("admin").orElseGet(User::new);
         admin.setFullName("Administrator");
         admin.setEmail("admin");
         admin.setPassword("pewpew");
         admin.setRole(UserRole.ADMIN);
-        userRepository.save(admin);
+        userDao.save(admin);
     }
 
     private boolean tableExists(String tableName) {

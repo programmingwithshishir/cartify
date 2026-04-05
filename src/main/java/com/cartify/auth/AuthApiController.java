@@ -15,10 +15,10 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/api")
 public class AuthApiController {
 
-    private final UserRepository userRepository;
+    private final UserDao userDao;
 
-    public AuthApiController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public AuthApiController(UserDao userDao) {
+        this.userDao = userDao;
     }
 
     @PostMapping("/auth/register")
@@ -30,7 +30,7 @@ public class AuthApiController {
         }
 
         String normalizedEmail = request.email().trim().toLowerCase();
-        if (userRepository.findByEmail(normalizedEmail).isPresent()) {
+        if (userDao.findByEmail(normalizedEmail).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Email is already registered."));
         }
 
@@ -39,7 +39,7 @@ public class AuthApiController {
         user.setEmail(normalizedEmail);
         user.setPassword(request.password()); // Stored as plain text per current requirement.
         user.setRole(UserRole.CUSTOMER);
-        userRepository.save(user);
+        userDao.save(user);
 
         return ResponseEntity.ok(Map.of("message", "Registration successful."));
     }
@@ -50,7 +50,7 @@ public class AuthApiController {
             return ResponseEntity.badRequest().body(Map.of("message", "Email and password are required."));
         }
 
-        return userRepository.findByEmailAndRole(request.email().trim().toLowerCase(), UserRole.CUSTOMER)
+        return userDao.findByEmailAndRole(request.email().trim().toLowerCase(), UserRole.CUSTOMER)
                 .filter(user -> user.getPassword().equals(request.password()))
                 .map(user -> {
                     session.setAttribute("customerId", user.getId());
@@ -69,7 +69,7 @@ public class AuthApiController {
             return ResponseEntity.badRequest().body(Map.of("message", "Username and password are required."));
         }
 
-        return userRepository.findByEmailAndRole(request.email().trim().toLowerCase(), UserRole.ADMIN)
+        return userDao.findByEmailAndRole(request.email().trim().toLowerCase(), UserRole.ADMIN)
                 .filter(user -> user.getPassword().equals(request.password()))
                 .map(admin -> {
                     session.setAttribute("isAdmin", true);
@@ -82,6 +82,12 @@ public class AuthApiController {
 
     @PostMapping("/admin/logout")
     public ResponseEntity<Map<String, String>> adminLogout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully."));
+    }
+
+    @PostMapping("/auth/logout")
+    public ResponseEntity<Map<String, String>> customerLogout(HttpSession session) {
         session.invalidate();
         return ResponseEntity.ok(Map.of("message", "Logged out successfully."));
     }

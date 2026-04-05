@@ -3,16 +3,200 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Dashboard</title>
+  <title>Cartify Store</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <div class="card dashboard">
-    <h1>Welcome to Cartify</h1>
-    <p>You are logged in as a customer.</p>
-    <div class="links">
-      <a href="/login.html">Back to Login</a>
-    </div>
-  </div>
+  <main class="shop-shell">
+    <section class="shop-header">
+      <div>
+        <h1>Cartify Store</h1>
+        <p>Browse items, search quickly, and add what you need to cart.</p>
+      </div>
+      <button id="logoutBtn" class="secondary" type="button">Logout</button>
+    </section>
+
+    <section class="shop-grid">
+      <article class="shop-products">
+        <label for="search">Search products</label>
+        <input id="search" type="text" placeholder="Search by name, description, or tags...">
+        <div id="productGrid" class="product-grid"></div>
+      </article>
+
+      <aside class="shop-cart">
+        <h2>Your Cart</h2>
+        <div id="cartItems" class="cart-items"></div>
+        <div class="cart-total">
+          <span>Total</span>
+          <strong id="cartTotal">&#8377;0.00</strong>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const productGrid = document.getElementById("productGrid");
+    const cartItems = document.getElementById("cartItems");
+    const cartTotal = document.getElementById("cartTotal");
+    const searchInput = document.getElementById("search");
+    const logoutBtn = document.getElementById("logoutBtn");
+    let products = [];
+    let cart = [];
+
+    function price(amount) {
+      return `\u20B9${Number(amount).toFixed(2)}`;
+    }
+
+    function firstImage(item) {
+      return item.imageUrls && item.imageUrls.length ? item.imageUrls[0] : "";
+    }
+
+    function tags(item) {
+      return (item.categoryTags || []).join(", ");
+    }
+
+    function renderProducts(items) {
+      productGrid.innerHTML = "";
+      if (!items.length) {
+        productGrid.innerHTML = "<p class='muted'>No items available.</p>";
+        return;
+      }
+
+      items.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.innerHTML = `
+          <img src="${firstImage(item)}" alt="${item.name}" class="product-image">
+          <div class="product-content">
+            <h3>${item.name}</h3>
+            <p class="product-desc">${item.description}</p>
+            <p class="product-tags">${tags(item)}</p>
+            <div class="product-footer">
+              <strong>${price(item.price)}</strong>
+              <div class="add-row">
+                <input type="number" min="1" value="1" class="qty-input" id="qty-${item.id}">
+                <button class="small" data-add="${item.id}">Add</button>
+              </div>
+            </div>
+          </div>
+        `;
+        productGrid.appendChild(card);
+      });
+    }
+
+    function renderCart() {
+      cartItems.innerHTML = "";
+      if (!cart.length) {
+        cartItems.innerHTML = "<p class='muted'>Cart is empty.</p>";
+        cartTotal.textContent = price(0);
+        return;
+      }
+
+      cart.forEach((entry) => {
+        const row = document.createElement("div");
+        row.className = "cart-row";
+        row.innerHTML = `
+          <img src="${entry.imageUrls && entry.imageUrls.length ? entry.imageUrls[0] : ""}" alt="${entry.itemName}" class="cart-image">
+          <div class="cart-body">
+            <h4>${entry.itemName}</h4>
+            <p>${price(entry.itemPrice)} each</p>
+            <div class="cart-actions">
+              <input type="number" min="1" value="${entry.quantity}" data-qty="${entry.cartItemId}" class="qty-input small-qty">
+              <button class="small danger" data-remove="${entry.cartItemId}">Remove</button>
+            </div>
+          </div>
+          <strong>${price(entry.lineTotal)}</strong>
+        `;
+        cartItems.appendChild(row);
+      });
+    }
+
+    async function fetchProducts(query = "") {
+      const res = await fetch("/api/customer/items" + (query ? `?q=${encodeURIComponent(query)}` : ""));
+      if (res.status === 401) {
+        window.location.href = "/login.html";
+        return;
+      }
+      products = await res.json();
+      renderProducts(products);
+    }
+
+    async function fetchCart() {
+      const res = await fetch("/api/customer/cart");
+      if (res.status === 401) {
+        window.location.href = "/login.html";
+        return;
+      }
+      const data = await res.json();
+      cart = data.items || [];
+      renderCart();
+      cartTotal.textContent = price(data.total || 0);
+    }
+
+    async function addToCart(itemId, qty) {
+      const res = await fetch("/api/customer/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId, quantity: qty })
+      });
+      if (res.ok) {
+        await fetchCart();
+      }
+    }
+
+    async function updateCart(cartItemId, qty) {
+      const res = await fetch(`/api/customer/cart/${cartItemId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quantity: qty })
+      });
+      if (res.ok) {
+        await fetchCart();
+      }
+    }
+
+    async function removeCartItem(cartItemId) {
+      const res = await fetch(`/api/customer/cart/${cartItemId}`, { method: "DELETE" });
+      if (res.ok) {
+        await fetchCart();
+      }
+    }
+
+    productGrid.addEventListener("click", async (e) => {
+      const id = e.target.getAttribute("data-add");
+      if (!id) return;
+      const qtyInput = document.getElementById(`qty-${id}`);
+      const qty = Math.max(1, Number(qtyInput.value || "1"));
+      await addToCart(Number(id), qty);
+    });
+
+    cartItems.addEventListener("click", async (e) => {
+      const removeId = e.target.getAttribute("data-remove");
+
+      if (removeId) {
+        await removeCartItem(Number(removeId));
+      }
+    });
+
+    cartItems.addEventListener("change", async (e) => {
+      const cartItemId = e.target.getAttribute("data-qty");
+      if (!cartItemId) return;
+      const qty = Math.max(1, Number(e.target.value || "1"));
+      e.target.value = qty;
+      await updateCart(Number(cartItemId), qty);
+    });
+
+    searchInput.addEventListener("input", () => {
+      fetchProducts(searchInput.value.trim());
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      await fetch("/api/auth/logout", { method: "POST" });
+      window.location.href = "/login.html";
+    });
+
+    fetchProducts();
+    fetchCart();
+  </script>
 </body>
 </html>
