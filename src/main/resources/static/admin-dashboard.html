@@ -3,16 +3,258 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard</title>
+  <title>Admin Item Manager</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <div class="card dashboard">
-    <h1>Admin Dashboard</h1>
-    <p>Admin access granted.</p>
-    <div class="links">
-      <a href="/admin-login.html">Back to Admin Login</a>
-    </div>
-  </div>
+  <main class="admin-shell">
+    <section class="admin-header">
+      <div>
+        <h1>Admin Item Manager</h1>
+        <p>Left: add or edit items. Right: search and manage all listed products.</p>
+      </div>
+      <div class="admin-nav">
+        <button id="logoutBtn" class="secondary" type="button">Logout</button>
+      </div>
+    </section>
+
+    <section class="admin-grid">
+      <article class="admin-column">
+        <h2>Add or Edit Item</h2>
+        <form id="itemForm">
+          <input id="itemId" type="hidden">
+          <input id="existingImageUrls" type="hidden">
+
+          <label for="name">Item Name</label>
+          <input id="name" name="name" type="text" required>
+
+          <label for="description">Description</label>
+          <textarea id="description" name="description" rows="4" required></textarea>
+
+          <label for="price">Price</label>
+          <input id="price" name="price" type="number" min="0" step="0.01" required>
+
+          <label for="images">Upload Images</label>
+          <input id="images" name="images" type="file" accept="image/*" multiple>
+          <small class="hint">For edit: leave empty to keep current images, or choose new files to replace.</small>
+
+          <div id="currentImages" class="image-preview-grid"></div>
+
+          <label for="tags">Category Tags (comma separated)</label>
+          <input id="tags" name="categoryTags" type="text" placeholder="electronics, headphones, wireless" required>
+
+          <div class="admin-actions">
+            <button id="saveBtn" type="submit">Add Item</button>
+            <button id="cancelEditBtn" type="button" class="secondary" style="display:none;">Cancel Edit</button>
+          </div>
+          <div id="message" class="message"></div>
+        </form>
+      </article>
+
+      <article class="admin-column">
+        <h2>Manage Items</h2>
+        <label for="search">Search by name, description, or category</label>
+        <input id="search" type="text" placeholder="Search items...">
+
+        <div class="items-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Tags</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="itemsBody"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const itemForm = document.getElementById("itemForm");
+    const itemIdInput = document.getElementById("itemId");
+    const existingImageUrlsInput = document.getElementById("existingImageUrls");
+    const message = document.getElementById("message");
+    const itemsBody = document.getElementById("itemsBody");
+    const searchInput = document.getElementById("search");
+    const saveBtn = document.getElementById("saveBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+    const currentImages = document.getElementById("currentImages");
+    const logoutBtn = document.getElementById("logoutBtn");
+    let items = [];
+
+    function showMessage(text, ok) {
+      message.textContent = text;
+      message.className = "message";
+      message.classList.add(ok ? "ok" : "err");
+    }
+
+    function toCsv(list) {
+      return (list || []).join(", ");
+    }
+
+    function renderCurrentImages(urls) {
+      currentImages.innerHTML = "";
+      if (!urls || !urls.length) {
+        return;
+      }
+
+      urls.forEach((url) => {
+        const img = document.createElement("img");
+        img.src = url;
+        img.alt = "Item image";
+        currentImages.appendChild(img);
+      });
+    }
+
+    function buildFormData() {
+      const formData = new FormData();
+      formData.append("name", document.getElementById("name").value);
+      formData.append("description", document.getElementById("description").value);
+      formData.append("price", document.getElementById("price").value);
+      formData.append("categoryTags", document.getElementById("tags").value);
+      formData.append("existingImageUrls", existingImageUrlsInput.value);
+
+      const files = document.getElementById("images").files;
+      for (const file of files) {
+        formData.append("images", file);
+      }
+      return formData;
+    }
+
+    function renderRows(data) {
+      itemsBody.innerHTML = "";
+      if (!data.length) {
+        itemsBody.innerHTML = "<tr><td colspan='5'>No items found.</td></tr>";
+        return;
+      }
+
+      data.forEach((item) => {
+        const image = item.imageUrls && item.imageUrls.length ? item.imageUrls[0] : "";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${image ? `<img src="${image}" alt="Item" class="table-thumb">` : "-"}</td>
+          <td>${item.name}</td>
+          <td>&#8377;${Number(item.price).toFixed(2)}</td>
+          <td>${toCsv(item.categoryTags)}</td>
+          <td>
+            <button class="small" data-edit="${item.id}">Edit</button>
+            <button class="small danger" data-delete="${item.id}">Delete</button>
+          </td>
+        `;
+        itemsBody.appendChild(tr);
+      });
+    }
+
+    async function loadItems(query = "") {
+      const res = await fetch("/api/admin/items" + (query ? `?q=${encodeURIComponent(query)}` : ""));
+      if (res.status === 401) {
+        showMessage("Admin session expired. Login again.", false);
+        window.location.href = "/admin-login.html";
+        return;
+      }
+
+      if (!res.ok) {
+        showMessage("Failed to load items.", false);
+        return;
+      }
+
+      items = await res.json();
+      renderRows(items);
+    }
+
+    function resetForm() {
+      itemForm.reset();
+      itemIdInput.value = "";
+      existingImageUrlsInput.value = "";
+      saveBtn.textContent = "Add Item";
+      cancelEditBtn.style.display = "none";
+      renderCurrentImages([]);
+    }
+
+    function startEdit(item) {
+      itemIdInput.value = item.id;
+      document.getElementById("name").value = item.name;
+      document.getElementById("description").value = item.description;
+      document.getElementById("price").value = item.price;
+      document.getElementById("tags").value = toCsv(item.categoryTags);
+      existingImageUrlsInput.value = toCsv(item.imageUrls);
+      renderCurrentImages(item.imageUrls);
+      saveBtn.textContent = "Update Item";
+      cancelEditBtn.style.display = "block";
+      showMessage("Edit mode active.", true);
+    }
+
+    itemForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = itemIdInput.value;
+      const isEdit = Boolean(id);
+      const endpoint = isEdit ? `/api/admin/items/${id}` : "/api/admin/items";
+      const method = isEdit ? "PUT" : "POST";
+
+      const res = await fetch(endpoint, {
+        method,
+        body: buildFormData()
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        showMessage(data.message || "Failed to save item.", false);
+        return;
+      }
+
+      showMessage(isEdit ? "Item updated." : "Item added.", true);
+      resetForm();
+      await loadItems(searchInput.value.trim());
+    });
+
+    cancelEditBtn.addEventListener("click", () => {
+      resetForm();
+      showMessage("Edit cancelled.", true);
+    });
+
+    itemsBody.addEventListener("click", async (e) => {
+      const editId = e.target.getAttribute("data-edit");
+      const deleteId = e.target.getAttribute("data-delete");
+
+      if (editId) {
+        const item = items.find((x) => String(x.id) === String(editId));
+        if (item) {
+          startEdit(item);
+        }
+        return;
+      }
+
+      if (deleteId) {
+        if (!confirm("Delete this item?")) {
+          return;
+        }
+
+        const res = await fetch(`/api/admin/items/${deleteId}`, { method: "DELETE" });
+        const data = await res.json();
+        if (!res.ok) {
+          showMessage(data.message || "Delete failed.", false);
+          return;
+        }
+        showMessage("Item deleted.", true);
+        await loadItems(searchInput.value.trim());
+      }
+    });
+
+    searchInput.addEventListener("input", () => {
+      loadItems(searchInput.value.trim());
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      await fetch("/api/admin/logout", { method: "POST" });
+      window.location.href = "/admin-login.html";
+    });
+
+    loadItems();
+  </script>
 </body>
 </html>

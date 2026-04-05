@@ -80,6 +80,12 @@ public class AuthApiController {
                         .body(Map.of("message", "Invalid admin credentials.")));
     }
 
+    @PostMapping("/admin/logout")
+    public ResponseEntity<Map<String, String>> adminLogout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully."));
+    }
+
     public record RegisterRequest(String fullName, String email, String password) {
     }
 
