@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="card">
+    <h1>Admin Login</h1>
+    <p>Only admin can sign in from this page.</p>
+
+    <form id="adminForm">
+      <label for="username">Username</label>
+      <input id="username" type="text" required>
+
+      <label for="password">Password</label>
+      <input id="password" type="password" required>
+
+      <button type="submit">Login as Admin</button>
+      <div id="message" class="message"></div>
+    </form>
+
+    <div class="links">
+      Customer? <a href="/login.html">Customer Login</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("adminForm");
+    const message = document.getElementById("message");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      message.textContent = "";
+      message.className = "message";
+
+      const payload = {
+        email: document.getElementById("username").value,
+        password: document.getElementById("password").value
+      };
+
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      message.textContent = data.message || "Request finished.";
+      message.classList.add(res.ok ? "ok" : "err");
+
+      if (res.ok) {
+        window.location.href = "/admin/dashboard";
+      }
+    });
+  </script>
+</body>
+</html>

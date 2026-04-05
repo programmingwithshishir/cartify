@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Login</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="card">
+    <h1>Customer Login</h1>
+    <p>Sign in to your shopping account.</p>
+
+    <form id="loginForm">
+      <label for="email">Email</label>
+      <input id="email" type="email" required>
+
+      <label for="password">Password</label>
+      <input id="password" type="password" required>
+
+      <button type="submit">Login</button>
+      <div id="message" class="message"></div>
+    </form>
+
+    <div class="links">
+      New customer? <a href="/register.html">Register</a><br>
+      Admin? <a href="/admin-login.html">Admin Login</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("loginForm");
+    const message = document.getElementById("message");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      message.textContent = "";
+      message.className = "message";
+
+      const payload = {
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value
+      };
+
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      message.textContent = data.message || "Request finished.";
+      message.classList.add(res.ok ? "ok" : "err");
+
+      if (res.ok) {
+        window.location.href = "/customer-dashboard.html";
+      }
+    });
+  </script>
+</body>
+</html>
