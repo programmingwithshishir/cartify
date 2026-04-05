@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Incoming Orders</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <section class="admin-header">
+      <div>
+        <h1>Incoming Orders</h1>
+        <p>View all incoming orders and update the fulfillment status.</p>
+      </div>
+      <div class="admin-nav">
+        <a href="/admin-dashboard.html">Item Manager</a>
+        <button id="logoutBtn" class="secondary" type="button">Logout</button>
+      </div>
+    </section>
+
+    <section class="admin-orders">
+      <h2>Order Queue</h2>
+      <div class="items-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>Total</th>
+              <th>Current Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+      </div>
+      <div id="message" class="message"></div>
+    </section>
+  </main>
+
+  <script>
+    const ordersBody = document.getElementById("ordersBody");
+    const message = document.getElementById("message");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const orderStatuses = ["ORDERED", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"];
+
+    function showMessage(text, ok) {
+      message.textContent = text;
+      message.className = "message";
+      message.classList.add(ok ? "ok" : "err");
+    }
+
+    function renderOrders(orders) {
+      ordersBody.innerHTML = "";
+      if (!orders.length) {
+        ordersBody.innerHTML = "<tr><td colspan='5'>No orders yet.</td></tr>";
+        return;
+      }
+
+      orders.forEach((order) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>#${order.id}<br><small>${order.createdAt || ""}</small></td>
+          <td>${order.customerEmail || "-"}</td>
+          <td>&#8377;${Number(order.totalAmount).toFixed(2)}</td>
+          <td>${order.status.replaceAll("_", " ")}</td>
+          <td>
+            <select data-order-status="${order.id}">
+              ${orderStatuses.map(s => `<option value="${s}" ${s === order.status ? "selected" : ""}>${s.replaceAll("_", " ")}</option>`).join("")}
+            </select>
+            <button class="small" data-save-order="${order.id}">Save</button>
+            <button class="small danger" data-delete-order="${order.id}">Delete</button>
+          </td>
+        `;
+        ordersBody.appendChild(tr);
+      });
+    }
+
+    async function loadOrders() {
+      const res = await fetch("/api/admin/orders");
+      if (res.status === 401) {
+        window.location.href = "/admin-login.html";
+        return;
+      }
+      if (!res.ok) {
+        showMessage("Failed to load orders.", false);
+        return;
+      }
+      const orders = await res.json();
+      renderOrders(orders);
+    }
+
+    ordersBody.addEventListener("click", async (e) => {
+      const orderId = e.target.getAttribute("data-save-order");
+      const deleteOrderId = e.target.getAttribute("data-delete-order");
+
+      if (orderId) {
+        const select = document.querySelector(`[data-order-status='${orderId}']`);
+        const status = select ? select.value : "";
+
+        const res = await fetch(`/api/admin/orders/${orderId}/status`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showMessage(data.message || "Status update failed.", false);
+          return;
+        }
+        showMessage("Order status updated.", true);
+        await loadOrders();
+        return;
+      }
+
+      if (deleteOrderId) {
+        if (!confirm("Delete this order permanently?")) {
+          return;
+        }
+        const res = await fetch(`/api/admin/orders/${deleteOrderId}`, { method: "DELETE" });
+        const data = await res.json();
+        if (!res.ok) {
+          showMessage(data.message || "Order delete failed.", false);
+          return;
+        }
+        showMessage("Order deleted.", true);
+        await loadOrders();
+        return;
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      await fetch("/api/admin/logout", { method: "POST" });
+      window.location.href = "/admin-login.html";
+    });
+
+    loadOrders();
+  </script>
+</body>
+</html>

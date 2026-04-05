@@ -36,4 +36,31 @@ public class PageController {
         }
         return "redirect:/admin-login.html";
     }
+
+    @GetMapping("/admin/orders")
+    public String adminOrdersPage(HttpSession session) {
+        Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
+        if (Boolean.TRUE.equals(isAdmin)) {
+            return "redirect:/admin-orders.html";
+        }
+        return "redirect:/admin-login.html";
+    }
+
+    @GetMapping("/checkout")
+    public String checkoutPage(HttpSession session) {
+        Object customerId = session.getAttribute("customerId");
+        if (customerId instanceof Long) {
+            return "redirect:/checkout.html";
+        }
+        return "redirect:/login.html";
+    }
+
+    @GetMapping("/orders/tracking")
+    public String orderTrackingPage(HttpSession session) {
+        Object customerId = session.getAttribute("customerId");
+        if (customerId instanceof Long) {
+            return "redirect:/order-tracking.html";
+        }
+        return "redirect:/login.html";
+    }
 }

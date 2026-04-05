@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Orders</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="checkout-shell">
+    <section class="checkout-header">
+      <div>
+        <h1>Track Your Orders</h1>
+        <p>View live order updates from ordered to delivered.</p>
+      </div>
+      <div class="checkout-nav">
+        <a href="/customer-dashboard.html">Store</a>
+        <a href="/checkout.html">Checkout</a>
+      </div>
+    </section>
+
+    <section class="checkout-grid">
+      <article class="checkout-panel">
+        <h2>Order Timeline</h2>
+        <div id="ordersWrap" class="orders-wrap"></div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const ordersWrap = document.getElementById("ordersWrap");
+
+    function statusSteps(status) {
+      const steps = ["ORDERED", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"];
+      const idx = Math.max(0, steps.indexOf(status));
+      return steps.map((s, i) => ({ name: s, done: i <= idx }));
+    }
+
+    function price(amount) {
+      return `\u20B9${Number(amount).toFixed(2)}`;
+    }
+
+    function renderOrders(orders) {
+      ordersWrap.innerHTML = "";
+      if (!orders.length) {
+        ordersWrap.innerHTML = "<p class='muted'>No orders yet.</p>";
+        return;
+      }
+
+      orders.forEach((order) => {
+        const steps = statusSteps(order.status);
+        const card = document.createElement("div");
+        card.className = "order-card";
+        card.innerHTML = `
+          <div class="order-head">
+            <strong>Order #${order.id}</strong>
+            <span>${price(order.totalAmount)}</span>
+          </div>
+          <p class="muted">Placed: ${order.createdAt || "-"}</p>
+          <div class="status-row">
+            ${steps.map(s => `<span class="status-chip ${s.done ? "done" : ""}">${s.name.replaceAll("_", " ")}</span>`).join("")}
+          </div>
+          <div class="order-items">
+            ${order.items.map(i => `<div>${i.itemName} x ${i.quantity}</div>`).join("")}
+          </div>
+        `;
+        ordersWrap.appendChild(card);
+      });
+    }
+
+    async function loadOrders() {
+      const res = await fetch("/api/customer/orders");
+      if (res.status === 401) {
+        window.location.href = "/login.html";
+        return;
+      }
+      const data = await res.json();
+      renderOrders(data);
+    }
+
+    loadOrders();
+  </script>
+</body>
+</html>

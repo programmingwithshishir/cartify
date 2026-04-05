@@ -52,6 +52,54 @@ public class UserDataInitializer implements CommandLineRunner {
                     quantity INTEGER NOT NULL
                 )
                 """);
+
+        jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS addresses (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    customer_id INTEGER NOT NULL,
+                    full_name TEXT NOT NULL,
+                    phone TEXT NOT NULL,
+                    line1 TEXT NOT NULL,
+                    line2 TEXT,
+                    city TEXT NOT NULL,
+                    state TEXT NOT NULL,
+                    postal_code TEXT NOT NULL,
+                    country TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """);
+
+        jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS customer_orders (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    customer_id INTEGER NOT NULL,
+                    status TEXT NOT NULL,
+                    total_amount NUMERIC NOT NULL,
+                    shipping_full_name TEXT NOT NULL,
+                    shipping_phone TEXT NOT NULL,
+                    shipping_line1 TEXT NOT NULL,
+                    shipping_line2 TEXT,
+                    shipping_city TEXT NOT NULL,
+                    shipping_state TEXT NOT NULL,
+                    shipping_postal_code TEXT NOT NULL,
+                    shipping_country TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """);
+
+        jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS order_items (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    order_id INTEGER NOT NULL,
+                    item_id INTEGER NOT NULL,
+                    item_name TEXT NOT NULL,
+                    item_price NUMERIC NOT NULL,
+                    quantity INTEGER NOT NULL,
+                    line_total NUMERIC NOT NULL,
+                    image_url TEXT
+                )
+                """);
     }
 
     private void migrateCustomersTableToUsers() {

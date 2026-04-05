@@ -14,6 +14,7 @@
         <p>Left: add or edit items. Right: search and manage all listed products.</p>
       </div>
       <div class="admin-nav">
+        <a href="/admin-orders.html">Incoming Orders</a>
         <button id="logoutBtn" class="secondary" type="button">Logout</button>
       </div>
     </section>
@@ -166,6 +167,7 @@
       items = await res.json();
       renderRows(items);
     }
+
 
     function resetForm() {
       itemForm.reset();

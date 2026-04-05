@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="checkout-shell">
+    <section class="checkout-header">
+      <div>
+        <h1>Checkout</h1>
+        <p>Save addresses, place your order, and track live status updates.</p>
+      </div>
+      <div class="checkout-nav">
+        <a href="/customer-dashboard.html">Back to Store</a>
+        <a href="/order-tracking.html">Track Orders</a>
+      </div>
+    </section>
+
+    <section class="checkout-grid">
+      <article class="checkout-panel">
+        <h2>Shipping Address</h2>
+        <label for="savedAddresses">Use saved address</label>
+        <select id="savedAddresses">
+          <option value="">-- Select saved address --</option>
+        </select>
+        <p class="muted">Or add a new one below.</p>
+
+        <form id="addressForm">
+          <label for="fullName">Full Name</label>
+          <input id="fullName" type="text" required>
+
+          <label for="phone">Phone</label>
+          <input id="phone" type="text" required>
+
+          <label for="line1">Address Line 1</label>
+          <input id="line1" type="text" required>
+
+          <label for="line2">Address Line 2</label>
+          <input id="line2" type="text">
+
+          <label for="city">City</label>
+          <input id="city" type="text" required>
+
+          <label for="state">State</label>
+          <input id="state" type="text" required>
+
+          <label for="postalCode">Postal Code</label>
+          <input id="postalCode" type="text" required>
+
+          <label for="country">Country</label>
+          <input id="country" type="text" value="India" required>
+
+          <label class="inline-check">
+            <input id="saveForLater" type="checkbox" checked>
+            Save this address for later use
+          </label>
+        </form>
+
+        <button id="placeOrderBtn" type="button">Place Order</button>
+        <div id="checkoutMessage" class="message"></div>
+      </article>
+
+    </section>
+  </main>
+
+  <script>
+    const savedAddresses = document.getElementById("savedAddresses");
+    const checkoutMessage = document.getElementById("checkoutMessage");
+    const placeOrderBtn = document.getElementById("placeOrderBtn");
+    let addresses = [];
+
+    function showMessage(text, ok) {
+      checkoutMessage.textContent = text;
+      checkoutMessage.className = "message";
+      checkoutMessage.classList.add(ok ? "ok" : "err");
+    }
+
+    function currentAddressPayload() {
+      return {
+        fullName: document.getElementById("fullName").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        line1: document.getElementById("line1").value.trim(),
+        line2: document.getElementById("line2").value.trim(),
+        city: document.getElementById("city").value.trim(),
+        state: document.getElementById("state").value.trim(),
+        postalCode: document.getElementById("postalCode").value.trim(),
+        country: document.getElementById("country").value.trim()
+      };
+    }
+
+    function renderAddressOptions() {
+      savedAddresses.innerHTML = `<option value="">-- Select saved address --</option>`;
+      addresses.forEach((a) => {
+        const option = document.createElement("option");
+        option.value = a.id;
+        option.textContent = `${a.fullName} - ${a.line1}, ${a.city}`;
+        savedAddresses.appendChild(option);
+      });
+    }
+
+    async function loadAddresses() {
+      const res = await fetch("/api/customer/addresses");
+      if (res.status === 401) {
+        window.location.href = "/login.html";
+        return;
+      }
+      addresses = await res.json();
+      renderAddressOptions();
+    }
+
+    placeOrderBtn.addEventListener("click", async () => {
+      const selectedAddressId = savedAddresses.value;
+      let payload;
+
+      if (selectedAddressId) {
+        payload = { addressId: Number(selectedAddressId), saveForLater: true };
+      } else {
+        payload = {
+          address: currentAddressPayload(),
+          saveForLater: document.getElementById("saveForLater").checked
+        };
+      }
+
+      const res = await fetch("/api/customer/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showMessage(data.message || "Checkout failed.", false);
+        return;
+      }
+
+      showMessage(`Order placed successfully. Order ID: ${data.orderId}`, true);
+      await loadAddresses();
+    });
+
+    loadAddresses();
+  </script>
+</body>
+</html>

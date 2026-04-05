@@ -82,6 +82,10 @@ public class CartItemDao {
         jdbcTemplate.update("DELETE FROM cart_items WHERE id = ?", cartItem.getId());
     }
 
+    public void deleteByCustomerId(Long customerId) {
+        jdbcTemplate.update("DELETE FROM cart_items WHERE customer_id = ?", customerId);
+    }
+
     private CartItem mapCartItem(Long id, Long customerId, Long itemId, Integer quantity) {
         CartItem cartItem = new CartItem();
         cartItem.setId(id);
